@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+    <h1>🛠 Admin Dashboard</h1>
+    <nav>
+        <span>👑 Admin Panel</span>
+        <a href="#" id="logoutBtn">Logout</a>
+    </nav>
+</header>
+
+<main>
+
+    <section class="admin-section">
+        <h2>All Users</h2>
+        <ul id="userList" class="user-list"></ul>
+    </section>
+
+</main>
+
+<footer>
+    <p>&copy; 2024 Task Manager Admin</p>
+</footer>
+
+<script>
+const ADMIN_API = "http://localhost:3000/api/admin";
+
+/* ================= AUTH CHECK ================= */
+const admin = JSON.parse(localStorage.getItem("user"));
+
+if (!admin || admin.types !== "admin") {
+    window.location.href = "auth.html";
+}
+
+/* ================= LOGOUT ================= */
+document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "auth.html";
+});
+
+/* ================= LOAD USERS ================= */
+async function loadUsers() {
+    try {
+        const res = await fetch(`${ADMIN_API}/users`);
+        if (!res.ok) throw new Error("Failed to fetch users");
+
+        const users = await res.json();
+        const list = document.getElementById("userList");
+        list.innerHTML = "";
+
+        users.forEach(user => {
+            const li = document.createElement("li");
+            li.className = "user-card";
+
+            const isSelf = user._id === admin._id;
+
+            li.innerHTML = `
+                <div class="user-info">
+                    <p>👤 <strong>${user.name}</strong></p>
+                    <p>📧 ${user.email}</p>
+                    <p>🏷 Role: <strong>${user.types}</strong></p>
+                </div>
+
+                <div class="user-actions">
+                    <select ${isSelf ? "disabled" : ""} data-id="${user._id}">
+                        <option value="user" ${user.types === "user" ? "selected" : ""}>User</option>
+                        <option value="admin" ${user.types === "admin" ? "selected" : ""}>Admin</option>
+                    </select>
+
+                    <button 
+                        class="delete-btn" 
+                        ${isSelf ? "disabled" : ""} 
+                        data-id="${user._id}">
+                        🗑 Delete
+                    </button>
+                </div>
+            `;
+
+            list.appendChild(li);
+        });
+
+        attachEvents();
+    } catch (err) {
+        console.error(err);
+        alert("Failed to load users");
+    }
+}
+
+/* ================= EVENTS ================= */
+function attachEvents() {
+
+    document.querySelectorAll("select[data-id]").forEach(select => {
+        select.addEventListener("change", async (e) => {
+            const userId = e.target.dataset.id;
+            const type = e.target.value;
+            await updateType(userId, type);
+        });
+    });
+
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            const userId = e.target.dataset.id;
+            await deleteUser(userId);
+        });
+    });
+}
+
+/* ================= DELETE USER ================= */
+async function deleteUser(userId) {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+
+    try {
+        const res = await fetch(`${ADMIN_API}/users/${userId}`, {
+            method: "DELETE"
+        });
+
+        if (!res.ok) throw new Error("Delete failed");
+
+        loadUsers();
+    } catch (err) {
+        console.error(err);
+        alert("Failed to delete user");
+    }
+}
+
+/* ================= UPDATE ROLE ================= */
+async function updateType(userId, type) {
+    try {
+        const res = await fetch(`${ADMIN_API}/users/${userId}/type`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ types: type })
+        });
+
+        if (!res.ok) throw new Error("Update failed");
+
+        loadUsers();
+    } catch (err) {
+        console.error(err);
+        alert("Failed to update role");
+    }
+}
+
+/* ================= INIT ================= */
+loadUsers();
+</script>
+
+</body>
+</html>

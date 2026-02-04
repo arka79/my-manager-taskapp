@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+    <h1>Task Manager</h1>
+    <nav>
+        <span id="username"></span>
+        <a href="#" id="logoutBtn">Logout</a>
+    </nav>
+</header>
+
+<main>
+
+    <section>
+        <h2>Welcome Back 👋</h2>
+        <p>Stay organized. Crush your tasks.</p>
+    </section>
+
+    <section>
+        <h2>Your Stats</h2>
+        <ul>
+            <li>Total Tasks: <strong id="totalTasks">0</strong></li>
+            <li>Completed: <strong id="completedTasks">0</strong></li>
+            <li>Pending: <strong id="pendingTasks">0</strong></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Add New Task</h2>
+        <form id="taskForm">
+            <label>Title</label>
+            <input type="text" id="taskTitle" required>
+
+            <label>Description</label>
+            <input type="text" id="taskDescription">
+
+            <div class="form-actions">
+                <button type="submit" class="btn-login">Add Task</button>
+            </div>
+        </form>
+    </section>
+
+    <section>
+        <h2>Your Tasks</h2>
+        <ul id="taskList"></ul>
+    </section>
+
+</main>
+
+<footer>
+    <p>&copy; 2024 Task Manager. All rights reserved.</p>
+</footer>
+
+<script>
+const API_BASE = "http://localhost:3000/api/tasks";
+
+const user = JSON.parse(localStorage.getItem("user"));
+const userId = user?._id || user?.id;
+
+if (!userId) {
+    window.location.href = "auth.html";
+}
+
+/* ELEMENTS */
+const usernameEl = document.getElementById("username");
+const logoutBtn = document.getElementById("logoutBtn");
+const taskForm = document.getElementById("taskForm");
+const taskTitle = document.getElementById("taskTitle");
+const taskDescription = document.getElementById("taskDescription");
+const taskList = document.getElementById("taskList");
+
+usernameEl.textContent = `👤 ${user.name}`;
+
+/* LOGOUT */
+logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "auth.html";
+});
+
+/* LOAD TASKS */
+async function loadTasks() {
+    try {
+        const res = await fetch(`${API_BASE}/${userId}`);
+        const tasks = await res.json();
+
+        if (!Array.isArray(tasks)) return;
+        renderTasks(tasks);
+
+    } catch (err) {
+        console.error("Failed to load tasks:", err);
+    }
+}
+
+/* RENDER TASKS */
+function renderTasks(tasks) {
+    taskList.innerHTML = "";
+    let completed = 0;
+
+    tasks.forEach(task => {
+        const isCompleted = task.status === "completed";
+        if (isCompleted) completed++;
+
+        const li = document.createElement("li");
+        li.dataset.id = task._id;
+        li.className = isCompleted ? "task completed" : "task";
+
+        li.innerHTML = `
+            <div class="task-content">
+                <input 
+                    type="text" 
+                    value="${task.title}" 
+                    disabled 
+                    class="edit-title ${isCompleted ? "done-text" : ""}"
+                >
+
+                <input 
+                    type="text" 
+                    value="${task.description || ""}" 
+                    disabled 
+                    class="edit-desc ${isCompleted ? "done-text" : ""}"
+                >
+
+                ${isCompleted ? `<span class="badge">COMPLETED</span>` : ""}
+            </div>
+
+            <div class="task-actions">
+                <button onclick="toggleStatus('${task._id}', '${task.status}')">
+                    ${isCompleted ? "↩ Undo" : "✔ Done"}
+                </button>
+
+                ${!isCompleted ? `
+                    <button onclick="enableEdit(this)">✏️</button>
+                    <button onclick="saveEdit('${task._id}', this)" style="display:none">💾</button>
+                    <button onclick="cancelEdit(this)" style="display:none">❌</button>
+                ` : ""}
+
+                <button onclick="deleteTask('${task._id}')">🗑</button>
+            </div>
+        `;
+
+        taskList.appendChild(li);
+    });
+
+    document.getElementById("totalTasks").textContent = tasks.length;
+    document.getElementById("completedTasks").textContent = completed;
+    document.getElementById("pendingTasks").textContent = tasks.length - completed;
+}
+
+
+/* ADD TASK */
+taskForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const res = await fetch(API_BASE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            title: taskTitle.value,
+            description: taskDescription.value,
+            userId
+        })
+    });
+
+    if (!res.ok) return;
+
+    taskForm.reset();
+    loadTasks();
+});
+
+/* EDIT MODE */
+function enableEdit(btn) {
+    const li = btn.closest("li");
+    li.querySelectorAll("input").forEach(i => i.disabled = false);
+
+    btn.style.display = "none";
+    btn.nextElementSibling.style.display = "inline";
+    btn.nextElementSibling.nextElementSibling.style.display = "inline";
+}
+
+function cancelEdit(btn) {
+    loadTasks();
+}
+
+/* SAVE UPDATE */
+async function saveEdit(taskId, btn) {
+    const li = btn.closest("li");
+    const title = li.querySelector(".edit-title").value;
+    const description = li.querySelector(".edit-desc").value;
+
+    await fetch(`${API_BASE}/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description })
+    });
+
+    loadTasks();
+}
+
+/* TOGGLE STATUS */
+async function toggleStatus(taskId, currentStatus) {
+    await fetch(`${API_BASE}/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            status: currentStatus === "completed" ? "pending" : "completed"
+        })
+    });
+
+    loadTasks();
+}
+
+/* DELETE TASK */
+async function deleteTask(taskId) {
+    if (!confirm("Delete this task?")) return;
+
+    await fetch(`${API_BASE}/${taskId}`, {
+        method: "DELETE"
+    });
+
+    loadTasks();
+}
+
+/* INIT */
+loadTasks();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,287 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+:root {
+    --ink: #111;
+    --paper: #fdfcf8;
+    --primary: #ff4d4d;
+    --secondary: #ffd93d;
+    --accent: #2563eb;
+    --panel: #ffffff;
+    --soft-shadow: rgba(0, 0, 0, 0.15);
+}
+
+
+body {
+    font-family: "Comic Neue", "Segoe UI", sans-serif;
+    background:
+        radial-gradient(circle at top left, #fff6d1, transparent 40%),
+        radial-gradient(circle at bottom right, #e0ecff, transparent 40%),
+        var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    width: 92%;
+    max-width: 1100px;
+    margin: 24px auto;
+    background: linear-gradient(135deg, var(--primary), #ff7676);
+    border: 4px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 20px 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+header nav {
+    display: flex;
+    gap: 14px;
+}
+
+header nav a {
+    padding: 8px 18px;
+    border: 3px solid var(--ink);
+    font-weight: 800;
+    text-decoration: none;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: all 0.15s ease;
+}
+
+header nav a[href*="login"],
+header nav a[href*="auth"] {
+    background: var(--secondary);
+    color: var(--ink);
+}
+
+header nav a[href*="register"],
+header nav a[href*="signup"] {
+    background: var(--accent);
+    color: #fff;
+}
+
+header nav a:hover {
+    transform: translate(-2px, -2px) rotate(-1deg);
+    box-shadow: 6px 6px 0 var(--ink);
+}
+
+
+main {
+    width: 92%;
+    max-width: 1100px;
+    margin: 40px auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+
+section {
+    background: var(--panel);
+    border: 4px solid var(--ink);
+    box-shadow: 8px 8px 0 var(--ink);
+    padding: 28px;
+    position: relative;
+}
+
+section::before {
+    content: "";
+    position: absolute;
+    top: -14px;
+    left: 32px;
+    width: 18px;
+    height: 18px;
+    background: var(--panel);
+    border-left: 4px solid var(--ink);
+    border-top: 4px solid var(--ink);
+    transform: rotate(45deg);
+}
+
+section h2 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+section ul li::before {
+    content: "★";
+    color: var(--primary);
+}
+
+
+.form-container {
+    max-width: 420px;
+    margin: 80px auto;
+    background: linear-gradient(180deg, #ffffff, #fafafa);
+    border: 4px solid var(--ink);
+    box-shadow: 10px 10px 0 var(--ink);
+    padding: 36px;
+    animation: popIn 0.4s ease;
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.form-container h2 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 900;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+}
+
+.form-container label {
+    font-weight: 800;
+    margin-top: 16px;
+    display: block;
+}
+
+
+.form-container input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    border: 3px solid var(--ink);
+    font-size: 14px;
+    transition: 0.15s;
+}
+
+.form-container input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+
+.form-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.form-actions button {
+    flex: 1;
+    padding: 12px 0;
+    border: 4px solid var(--ink);
+    font-weight: 900;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: all 0.15s ease;
+}
+#checkbox {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+#checkbox:checked {
+    background-color: var(--accent);
+    border: 2px solid var(--ink);
+}
+
+
+.btn-login {
+    background: linear-gradient(135deg, var(--accent), #4f7cff);
+    color: #fff;
+}
+
+.btn-signup {
+    background: linear-gradient(135deg, var(--secondary), #ffe57a);
+}
+
+.form-actions button:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0 var(--ink);
+}
+#taskForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+#taskForm input {
+    flex: 1;
+    padding: 12px;
+    border: 3px solid var(--ink);
+    font-size: 14px;
+    transition: 0.15s;
+
+}
+
+
+.task {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: #fff;
+    border: 3px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: 0.2s;
+}
+
+.task.completed {
+    background: #eaffea;
+}
+
+.done-text {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.badge {
+    background: var(--secondary);
+    border: 2px solid var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+}
+
+footer {
+    width: 92%;
+    max-width: 1100px;
+    margin: auto auto 24px;
+    background: var(--secondary);
+    border: 4px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    text-align: center;
+    padding: 16px;
+    font-weight: 800;
+}
+
+
+@media (max-width: 900px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        flex-direction: column;
+        gap: 14px;
+        text-align: center;
+    }
+}
